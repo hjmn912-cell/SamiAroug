@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>برنامج الجدول التفاعلي الذكي</title>
-    <!-- مكتبات التصدير -->
+    <!-- مكتبات التصدير[cite: 1] -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -437,55 +437,64 @@
 
     <div class="container" id="exportArea">
         <div class="controls-wrapper">
-            <div class="dropdown-container">
-                <button class="dropdown-btn" onclick="toggleDropdown('dropdownMenu', 'arrow1')">
-                    الأعمدة <span id="arrow1">▼</span>
-                </button>
-                <div id="dropdownMenu" class="dropdown-content">
-                    <div id="columnsCheckboxesList">
-                        <label><input type="checkbox" onchange="toggleColumn(0, this.checked)"> <span id="lbl-col-0">التاريخ والوقت</span></label>
-                        <label><input type="checkbox" onchange="toggleColumn(1, this.checked)"> <span id="lbl-col-1">الجهة</span></label>
-                        <label><input type="checkbox" onchange="toggleColumn(2, this.checked)"> <span id="lbl-col-2">البيان</span></label>
-                        <label><input type="checkbox" checked onchange="toggleColumn(3, this.checked)"> <span id="lbl-col-3">وحدة القياس</span></label>
-                        <label><input type="checkbox" checked onchange="toggleColumn(4, this.checked)"> <span id="lbl-col-4">القيمة</span></label>
-                        <label><input type="checkbox" checked onchange="toggleColumn(5, this.checked)"> <span id="lbl-col-5">سعر الوحدة</span></label>
-                        <label><input type="checkbox" checked onchange="toggleColumn(6, this.checked)"> <span id="lbl-col-6">الكمية</span></label>
-                        <label><input type="checkbox" onchange="toggleColumn(7, this.checked)"> <span id="lbl-col-7">سعر الوحدة قبل الخصم</span></label>
-                        <label><input type="checkbox" onchange="toggleColumn(8, this.checked)"> <span id="lbl-col-8">القيمة قبل الخصم</span></label>
-                        <label><input type="checkbox" onchange="toggleColumn(9, this.checked)"> <span id="lbl-col-9">الخصم من سعر الوحدة</span></label>
-                        <label><input type="checkbox" checked onchange="toggleColumn(10, this.checked)"> <span id="lbl-col-10">نسبة وقيمة الخصم</span></label>
-                        <label><input type="checkbox" checked onchange="toggleColumn(11, this.checked)"> <span id="lbl-col-11">.</span></label>
-                    </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div class="dropdown-container">
+                    <button class="dropdown-btn" onclick="toggleDropdown('dropdownMenu', 'arrow1')">
+                        الأعمدة <span id="arrow1">▼</span>
+                    </button>
+                    <div id="dropdownMenu" class="dropdown-content">
+                        <div id="columnsCheckboxesList">
+                            <label><input type="checkbox" onchange="toggleColumn(0, this.checked)"> <span id="lbl-col-0">التاريخ والوقت</span></label>
+                            <label><input type="checkbox" onchange="toggleColumn(1, this.checked)"> <span id="lbl-col-1">الجهة</span></label>
+                            <label><input type="checkbox" onchange="toggleColumn(2, this.checked)"> <span id="lbl-col-2">البيان</span></label>
+                            <label><input type="checkbox" checked onchange="toggleColumn(3, this.checked)"> <span id="lbl-col-3">وحدة القياس</span></label>
+                            <label><input type="checkbox" checked onchange="toggleColumn(4, this.checked)"> <span id="lbl-col-4">القيمة</span></label>
+                            <label><input type="checkbox" checked onchange="toggleColumn(5, this.checked)"> <span id="lbl-col-5">سعر الوحدة</span></label>
+                            <label><input type="checkbox" checked onchange="toggleColumn(6, this.checked)"> <span id="lbl-col-6">الكمية</span></label>
+                            <label><input type="checkbox" onchange="toggleColumn(7, this.checked)"> <span id="lbl-col-7">سعر الوحدة قبل الخصم</span></label>
+                            <label><input type="checkbox" onchange="toggleColumn(8, this.checked)"> <span id="lbl-col-8">القيمة قبل الخصم</span></label>
+                            <label><input type="checkbox" onchange="toggleColumn(9, this.checked)"> <span id="lbl-col-9">الخصم من سعر الوحدة</span></label>
+                            <label><input type="checkbox" checked onchange="toggleColumn(10, this.checked)"> <span id="lbl-col-10">نسبة وقيمة الخصم</span></label>
+                            <label><input type="checkbox" checked onchange="toggleColumn(11, this.checked)"> <span id="lbl-col-11">.</span></label>
+                        </div>
 
-                    <div class="add-column-section">
-                        <div class="filter-section-title">إضافة عمود جديد</div>
-                        <input type="text" id="newColName" placeholder="اسم العمود">
-                        <select id="newColType">
-                            <option value="text">نصي (Text)</option>
-                            <option value="numeric">رقمي (Numeric)</option>
-                            <option value="date">تاريخ (Date)</option>
-                            <option value="datetime">تاريخ ووقت (DateTime)</option>
-                        </select>
-                        <select id="newColVisibility">
-                            <option value="hidden">مخفي</option>
-                            <option value="visible">ظاهر</option>
-                        </select>
-                        <button class="add-column-btn" onclick="addNewCustomColumn()">إضافة العمود</button>
+                        <div class="add-column-section">
+                            <div class="filter-section-title">إضافة عمود جديد</div>
+                            <input type="text" id="newColName" placeholder="اسم العمود">
+                            <select id="newColType">
+                                <option value="text">نصي (Text)</option>
+                                <option value="numeric">رقمي (Numeric)</option>
+                                <option value="date">تاريخ (Date)</option>
+                                <option value="datetime">تاريخ ووقت (DateTime)</option>
+                            </select>
+                            <select id="newColVisibility">
+                                <option value="hidden">مخفي</option>
+                                <option value="visible">ظاهر</option>
+                            </select>
+                            <button class="add-column-btn" onclick="addNewCustomColumn()">إضافة العمود</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dropdown-container">
+                    <button class="dropdown-btn" onclick="toggleDropdown('exportMenu', 'arrow2')" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
+                        تصدير <span id="arrow2">▼</span>
+                    </button>
+                    <div id="exportMenu" class="dropdown-content">
+                        <button onclick="exportToImage()">صورة</button>
+                        <button onclick="exportToPDF()">PDF</button>
+                        <button onclick="exportToText()">Text</button>
+                        <button onclick="exportToWord()">Word</button>
+                        <button onclick="exportToHTML()">HTML</button>
                     </div>
                 </div>
             </div>
 
-            <div class="dropdown-container">
-                <button class="dropdown-btn" onclick="toggleDropdown('exportMenu', 'arrow2')" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
-                    تصدير <span id="arrow2">▼</span>
+            <!-- زر حفظ البيانات في جوجل شيت -->
+            <div>
+                <button class="dropdown-btn" onclick="saveAllRowsToGoogleSheets()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    📊 حفظ في جوجل شيت
                 </button>
-                <div id="exportMenu" class="dropdown-content">
-                    <button onclick="exportToImage()">صورة</button>
-                    <button onclick="exportToPDF()">PDF</button>
-                    <button onclick="exportToText()">Text</button>
-                    <button onclick="exportToWord()">Word</button>
-                    <button onclick="exportToHTML()">HTML</button>
-                </div>
             </div>
         </div>
 
@@ -617,6 +626,49 @@
     <script>
         let activeFilters = {};
         let totalColumnsCount = 12;
+
+        // دالة إرسال البيانات إلى جوجل شيت
+        function saveAllRowsToGoogleSheets() {
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbykhFMhhrS51vBMOwJG3JZv88KYhGGAwbwdjSxCresvPXYD2jx1jIzllaQ9pCAbeb4QHQ/exec';
+
+            const rows = document.querySelectorAll('#tableBody tr');
+            if (rows.length === 0) {
+                alert('لا توجد بيانات للحفظ!');
+                return;
+            }
+
+            let savedCount = 0;
+
+            rows.forEach((row, index) => {
+                const rowData = [
+                    row.querySelector('.field-datetime')?.value || '',
+                    row.querySelector('.field-entity')?.value || '',
+                    row.querySelector('.field-statement')?.value || '',
+                    row.querySelector('.field-unit')?.value || '',
+                    row.querySelector('.field-value')?.value || '',
+                    row.querySelector('.field-price')?.value || '',
+                    row.querySelector('.field-qty')?.value || '',
+                    row.querySelector('.field-before-discount')?.value || '',
+                    row.querySelector('.field-value-before-discount')?.value || '',
+                    row.querySelector('.field-discount-amount')?.value || '',
+                    (row.querySelector('.field-discount-percent')?.value || '0') + '%'
+                ];
+
+                fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(rowData)
+                }).then(() => {
+                    savedCount++;
+                    if (savedCount === rows.length) {
+                        alert('تم حفظ جميع الصفوف في جوجل شيت بنجاح!');
+                    }
+                }).catch(error => {
+                    console.error('خطأ في الحفظ:', error);
+                });
+            });
+        }
 
         function toggleDropdown(menuId, arrowId) {
             const menu = document.getElementById(menuId);
@@ -1159,7 +1211,7 @@
             rowHtml += `
                 <td class="action-cell col-${totalColumnsCount <= 11 ? 11 : 'action'}">
                     <button class="btn-small reset-btn" onclick="resetRow(this)" title="إعادة">🔄</button>
-                    <button class="btn-small delete-btn" onclick="deleteRow(this)" title="حذف">🗑️</button>
+                    <button class="btn-small delete-btn" onclick="deleteRow(this)" title="حذف">🗑</button>
                 </td>
             `;
 
@@ -1450,7 +1502,6 @@
             const priceInput = row.querySelector('.field-price');
             const beforeDiscountInput = row.querySelector('.field-before-discount');
             
-            // تفريغ وتعطيل عمود سعر الوحدة قبل الخصم عند الكتابة في نسبة الخصم
             if (beforeDiscountInput && percentInput.value.trim() !== '') {
                 beforeDiscountInput.value = '';
                 beforeDiscountInput.setAttribute('disabled', 'true');
@@ -1488,7 +1539,6 @@
             const priceInput = row.querySelector('.field-price');
             const beforeDiscountInput = row.querySelector('.field-before-discount');
             
-            // تفريغ وتعطيل عمود سعر الوحدة قبل الخصم عند الكتابة في قيمة الخصم
             if (beforeDiscountInput && amountInput.value.trim() !== '') {
                 beforeDiscountInput.value = '';
                 beforeDiscountInput.setAttribute('disabled', 'true');
