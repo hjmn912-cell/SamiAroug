@@ -1,0 +1,1781 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج الجدول التفاعلي الذكي</title>
+    <!-- مكتبات التصدير -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            margin: 0;
+            padding: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            overflow: visible !important;
+        }
+        
+        .controls-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            color: #ffffff;
+            border: none;
+            padding: 12px 22px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+            transition: all 0.2s ease;
+        }
+        .dropdown-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #ffffff;
+            min-width: 280px;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.12);
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+            z-index: 9999;
+            margin-top: 8px;
+        }
+        .dropdown-content label, .dropdown-content a, .dropdown-content button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #334155;
+            font-weight: bold;
+            text-decoration: none;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: right;
+            border-radius: 6px;
+            transition: background-color 0.15s;
+        }
+        .dropdown-content label:hover, .dropdown-content a:hover, .dropdown-content button:hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .dropdown-content input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #4f46e5;
+        }
+
+        .add-column-section {
+            border-top: 2px solid #e2e8f0;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+        .add-column-section input, .add-column-section select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            box-sizing: border-box;
+            direction: rtl;
+        }
+        .add-column-btn {
+            background: #10b981 !important;
+            color: white !important;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 6px;
+        }
+
+        .add-btn-container {
+            margin-top: 25px;
+            text-align: right;
+            position: relative;
+            z-index: 1;
+        }
+        .add-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            font-size: 26px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            font-weight: bold;
+        }
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 10px;
+            border-radius: 12px;
+            overflow: visible !important;
+            border: 1px solid #e2e8f0;
+        }
+        td {
+            border-bottom: 1px solid #e2e8f0;
+            border-left: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            text-align: center;
+            font-size: 18px;
+            vertical-align: middle;
+            font-weight: bold !important;
+        }
+        td:last-child {
+            border-left: none;
+        }
+        
+        th {
+            border-bottom: 2px solid #cbd5e1;
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 10px;
+            text-align: center;
+            vertical-align: middle;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #f8fafc;
+            cursor: grab;
+            user-select: none;
+            font-size: 15px;
+            font-weight: 700;
+            direction: rtl;
+            unicode-bidi: isolate;
+            position: relative;
+            overflow: visible !important;
+            z-index: 10;
+            letter-spacing: 0.3px;
+            box-shadow: inset 0 -2px 0 rgba(79, 70, 229, 0.5);
+        }
+        th:last-child {
+            border-left: none;
+        }
+        th:active {
+            cursor: grabbing;
+        }
+        th.dragging {
+            opacity: 0.5;
+            background-color: #334155;
+        }
+
+        .th-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            position: relative;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .filter-dropdown-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: all 0.15s;
+        }
+        .filter-dropdown-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
+
+        .access-filter-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #ffffff;
+            color: #1e293b;
+            min-width: 270px;
+            max-height: 380px;
+            overflow-y: auto;
+            box-shadow: 0px 12px 30px rgba(0,0,0,0.2);
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            z-index: 99999;
+            text-align: right;
+            padding: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 6px;
+            box-sizing: border-box;
+        }
+        .filter-section-title {
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 16px;
+            color: #64748b;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 4px;
+        }
+        .access-filter-menu select, .access-filter-menu input[type="text"], .access-filter-menu input[type="date"], .access-filter-menu input[type="datetime-local"] {
+            width: 100%;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+        .filter-action-btns {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .filter-action-btns button {
+            flex: 1;
+            padding: 8px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .filter-action-btns button.clear-btn {
+            background: #e2e8f0;
+            color: #475569;
+        }
+        
+        .access-sort-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 8px;
+        }
+        .access-sort-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 10px;
+            text-align: right;
+            cursor: pointer;
+            font-size: 18px;
+            color: #334155;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .access-sort-btn:hover {
+            background: #f1f5f9;
+        }
+
+        tfoot td {
+            background-color: #f1f5f9;
+            font-weight: bold;
+            color: #1e293b;
+            border-bottom: none;
+            font-size: 18px;
+        }
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+        input[type="text"], input[type="date"], input[type="datetime-local"] {
+            width: 78%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-weight: bold !important;
+            font-size: 18px;
+            direction: ltr;
+            text-align: right;
+            background: #fff;
+            transition: all 0.15s ease;
+        }
+        input[type="date"], input[type="datetime-local"] {
+            text-align: center;
+        }
+        input[type="text"]:focus, input[type="date"]:focus, input[type="datetime-local"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #4f46e5;
+        }
+
+        .action-cell {
+            white-space: nowrap;
+        }
+        .btn-small {
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 0 2px;
+            transition: transform 0.15s;
+        }
+        .btn-small:hover {
+            transform: scale(1.08);
+        }
+        .reset-btn {
+            background-color: #fef08a;
+            color: #854d0e;
+        }
+        .delete-btn {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .price-cell-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            width: 100%;
+        }
+        .reset-price-dot {
+            position: absolute;
+            top: -6px;
+            left: 2px;
+            width: 10px;
+            height: 10px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 1px solid #ffffff;
+            box-shadow: 0 0 3px rgba(0,0,0,0.3);
+            z-index: 5;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .reset-price-dot.active {
+            background-color: #10b981;
+        }
+        .reset-price-dot:hover {
+            transform: scale(1.4);
+        }
+
+        .percent-input-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .percent-input-wrapper input {
+            width: 100%;
+            padding-left: 24px !important;
+            text-align: center;
+            direction: ltr;
+            box-sizing: border-box;
+        }
+        .percent-input-wrapper .symbol {
+            position: absolute;
+            left: 8px;
+            color: #64748b;
+            pointer-events: none;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="exportArea">
+        <div class="controls-wrapper">
+            <div class="dropdown-container">
+                <button class="dropdown-btn" onclick="toggleDropdown('dropdownMenu', 'arrow1')">
+                    الأعمدة <span id="arrow1">▼</span>
+                </button>
+                <div id="dropdownMenu" class="dropdown-content">
+                    <div id="columnsCheckboxesList">
+                        <label><input type="checkbox" onchange="toggleColumn(0, this.checked)"> <span id="lbl-col-0">التاريخ والوقت</span></label>
+                        <label><input type="checkbox" onchange="toggleColumn(1, this.checked)"> <span id="lbl-col-1">الجهة</span></label>
+                        <label><input type="checkbox" onchange="toggleColumn(2, this.checked)"> <span id="lbl-col-2">البيان</span></label>
+                        <label><input type="checkbox" checked onchange="toggleColumn(3, this.checked)"> <span id="lbl-col-3">وحدة القياس</span></label>
+                        <label><input type="checkbox" checked onchange="toggleColumn(4, this.checked)"> <span id="lbl-col-4">القيمة</span></label>
+                        <label><input type="checkbox" checked onchange="toggleColumn(5, this.checked)"> <span id="lbl-col-5">سعر الوحدة</span></label>
+                        <label><input type="checkbox" checked onchange="toggleColumn(6, this.checked)"> <span id="lbl-col-6">الكمية</span></label>
+                        <label><input type="checkbox" onchange="toggleColumn(7, this.checked)"> <span id="lbl-col-7">سعر الوحدة قبل الخصم</span></label>
+                        <label><input type="checkbox" onchange="toggleColumn(8, this.checked)"> <span id="lbl-col-8">القيمة قبل الخصم</span></label>
+                        <label><input type="checkbox" onchange="toggleColumn(9, this.checked)"> <span id="lbl-col-9">الخصم من سعر الوحدة</span></label>
+                        <label><input type="checkbox" checked onchange="toggleColumn(10, this.checked)"> <span id="lbl-col-10">نسبة وقيمة الخصم</span></label>
+                        <label><input type="checkbox" checked onchange="toggleColumn(11, this.checked)"> <span id="lbl-col-11">.</span></label>
+                    </div>
+
+                    <div class="add-column-section">
+                        <div class="filter-section-title">إضافة عمود جديد</div>
+                        <input type="text" id="newColName" placeholder="اسم العمود">
+                        <select id="newColType">
+                            <option value="text">نصي (Text)</option>
+                            <option value="numeric">رقمي (Numeric)</option>
+                            <option value="date">تاريخ (Date)</option>
+                            <option value="datetime">تاريخ ووقت (DateTime)</option>
+                        </select>
+                        <select id="newColVisibility">
+                            <option value="hidden">مخفي</option>
+                            <option value="visible">ظاهر</option>
+                        </select>
+                        <button class="add-column-btn" onclick="addNewCustomColumn()">إضافة العمود</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dropdown-container">
+                <button class="dropdown-btn" onclick="toggleDropdown('exportMenu', 'arrow2')" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
+                    تصدير <span id="arrow2">▼</span>
+                </button>
+                <div id="exportMenu" class="dropdown-content">
+                    <button onclick="exportToImage()">صورة</button>
+                    <button onclick="exportToPDF()">PDF</button>
+                    <button onclick="exportToText()">Text</button>
+                    <button onclick="exportToWord()">Word</button>
+                    <button onclick="exportToHTML()">HTML</button>
+                </div>
+            </div>
+        </div>
+
+        <table id="mainTable">
+            <thead>
+                <tr id="headerRow">
+                    <th class="col-0" draggable="true" data-col="0" data-type="datetime" style="display: none;" oncontextmenu="renameColumn(event, 0)">
+                        <div class="th-content">
+                            <span id="text-col-0">التاريخ والوقت</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 0)">▼</button>
+                        </div>
+                        <div id="access-filter-0" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-1" draggable="true" data-col="1" data-type="text" style="display: none;" oncontextmenu="renameColumn(event, 1)">
+                        <div class="th-content">
+                            <span id="text-col-1">الجهة</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 1)">▼</button>
+                        </div>
+                        <div id="access-filter-1" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-2" draggable="true" data-col="2" data-type="text" style="display: none;" oncontextmenu="renameColumn(event, 2)">
+                        <div class="th-content">
+                            <span id="text-col-2">البيان</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 2)">▼</button>
+                        </div>
+                        <div id="access-filter-2" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-3" draggable="true" data-col="3" data-type="text" oncontextmenu="renameColumn(event, 3)">
+                        <div class="th-content">
+                            <span id="text-col-3">وحدة القياس</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 3)">▼</button>
+                        </div>
+                        <div id="access-filter-3" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-4" draggable="true" data-col="4" data-type="numeric" oncontextmenu="renameColumn(event, 4)">
+                        <div class="th-content">
+                            <span id="text-col-4">القيمة</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 4)">▼</button>
+                        </div>
+                        <div id="access-filter-4" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-5" draggable="true" data-col="5" data-type="numeric" oncontextmenu="renameColumn(event, 5)">
+                        <div class="th-content">
+                            <span id="text-col-5">سعر الوحدة</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 5)">▼</button>
+                        </div>
+                        <div id="access-filter-5" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-6" draggable="true" data-col="6" data-type="numeric" oncontextmenu="renameColumn(event, 6)">
+                        <div class="th-content">
+                            <span id="text-col-6">الكمية</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 6)">▼</button>
+                        </div>
+                        <div id="access-filter-6" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-7" draggable="true" data-col="7" data-type="numeric" style="display: none;" oncontextmenu="renameColumn(event, 7)">
+                        <div class="th-content">
+                            <span id="text-col-7">سعر الوحدة قبل الخصم</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 7)">▼</button>
+                        </div>
+                        <div id="access-filter-7" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-8" draggable="true" data-col="8" data-type="numeric" style="display: none;" oncontextmenu="renameColumn(event, 8)">
+                        <div class="th-content">
+                            <span id="text-col-8">القيمة قبل الخصم</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 8)">▼</button>
+                        </div>
+                        <div id="access-filter-8" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-9" draggable="true" data-col="9" data-type="numeric" style="display: none;" oncontextmenu="renameColumn(event, 9)">
+                        <div class="th-content">
+                            <span id="text-col-9">الخصم من سعر الوحدة</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 9)">▼</button>
+                        </div>
+                        <div id="access-filter-9" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-10" draggable="true" data-col="10" data-type="numeric" style="width: 200px;" oncontextmenu="renameColumn(event, 10)">
+                        <div class="th-content">
+                            <span id="text-col-10">نسبة وقيمة الخصم</span>
+                            <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, 10)">▼</button>
+                        </div>
+                        <div id="access-filter-10" class="access-filter-menu"></div>
+                    </th>
+                    <th class="col-11" draggable="true" data-col="11" oncontextmenu="renameColumn(event, 11)">
+                        <div class="th-content">
+                            <span id="text-col-11">.</span>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+            <tfoot>
+                <tr id="tableFooter">
+                    <td class="col-0" style="display: none;"></td>
+                    <td class="col-1" style="display: none;"></td>
+                    <td class="col-2" style="display: none;"></td>
+                    <td class="col-3">الإجمالي</td>
+                    <td class="col-4" id="total-value">0</td>
+                    <td class="col-5">
+                        <span id="total-price-text">0</span>
+                        <div style="margin-top: 8px; display: flex; gap: 4px; justify-content: center;">
+                            <input type="text" id="global-disc-amount" placeholder="خصم مبلغ" oninput="applyGlobalDiscountByAmount(this)" onchange="applyGlobalDiscountByAmount(this)" style="width: 48%; text-align: center; font-size: 14px; padding: 4px; direction: ltr;">
+                            <div class="percent-input-wrapper" style="width: 48%;">
+                                <input type="text" id="global-disc-percent" placeholder="خصم %" oninput="applyGlobalDiscountByPercent(this)" onchange="applyGlobalDiscountByPercent(this)" style="font-size: 14px; padding: 4px;">
+                                <span class="symbol" style="font-size: 14px; left: 6px;">%</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="col-6"></td>
+                    <td class="col-7" id="total-before-discount" style="display: none;">0</td>
+                    <td class="col-8" id="total-value-before-discount" style="display: none;">0</td>
+                    <td class="col-9" id="total-discount" style="display: none; text-align: center; font-size: 16px;">0</td>
+                    <td class="col-10" style="text-align: center; font-size: 15px; width: 200px;">
+                        <div style="display: flex; flex-direction: row; gap: 8px; justify-content: center; align-items: center;">
+                            <span id="total-discount-percent" style="color: #4f46e5; font-weight: bold;">0%</span>
+                            <span id="total-discount-val" style="font-weight: bold;">0</span>
+                        </div>
+                    </td>
+                    <td class="col-11"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="add-btn-container">
+            <button class="add-btn" onclick="addRow()">+</button>
+        </div>
+    </div>
+
+    <script>
+        let activeFilters = {};
+        let totalColumnsCount = 12;
+
+        function toggleDropdown(menuId, arrowId) {
+            const menu = document.getElementById(menuId);
+            const arrow = document.getElementById(arrowId);
+            
+            document.querySelectorAll('.dropdown-content').forEach(m => {
+                if(m.id !== menuId) m.style.display = 'none';
+            });
+            document.querySelectorAll('.dropdown-btn span[id^="arrow"]').forEach(a => {
+                if(a.id !== arrowId) a.textContent = '▼';
+            });
+
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+                arrow.textContent = '▼';
+            } else {
+                menu.style.display = 'block';
+                arrow.textContent = '▲';
+            }
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.dropdown-container') && !event.target.closest('th')) {
+                document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
+                document.querySelectorAll('.dropdown-btn span[id^="arrow"]').forEach(a => a.textContent = '▼');
+                document.querySelectorAll('.access-filter-menu').forEach(m => m.style.display = 'none');
+            }
+        }
+
+        function renameColumn(event, colIndex) {
+            event.preventDefault();
+            const nameSpan = document.getElementById(`text-col-${colIndex}`);
+            const menuLabelSpan = document.getElementById(`lbl-col-${colIndex}`);
+            if (!nameSpan) return;
+
+            const currentName = nameSpan.textContent;
+            const newName = prompt("أدخل الاسم الجديد للعمود:", currentName);
+
+            if (newName !== null && newName.trim() !== "") {
+                const trimmedName = newName.trim();
+                nameSpan.textContent = trimmedName;
+                if (menuLabelSpan) {
+                    menuLabelSpan.textContent = trimmedName;
+                }
+            }
+        }
+
+        function toggleAccessFilter(event, colIndex) {
+            event.stopPropagation();
+            const menu = document.getElementById(`access-filter-${colIndex}`);
+            if (!menu) return;
+            const th = document.querySelector(`th.col-${colIndex}`);
+            const dataType = th.getAttribute('data-type');
+            
+            document.querySelectorAll('.access-filter-menu').forEach(m => {
+                if(m.id !== `access-filter-${colIndex}`) m.style.display = 'none';
+            });
+
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+                return;
+            }
+
+            let currentConfig = activeFilters[colIndex] || { type: 'all', val1: '' };
+            let contentHtml = '';
+
+            if (dataType === 'text') {
+                contentHtml += `
+                    <div class="access-sort-btns">
+                        <button class="access-sort-btn" onclick="sortTable(${colIndex}, 'asc')">⬆ فرز تصاعدي (A to Z)</button>
+                        <button class="access-sort-btn" onclick="sortTable(${colIndex}, 'desc')">⬇ فرز تنازلي (Z to A)</button>
+                    </div>
+                    <div class="filter-section-title">عوامل تصفية النصوص المتقدمة</div>
+                    <select id="text-filter-type-${colIndex}">
+                        <option value="all" ${currentConfig.type === 'all' ? 'selected' : ''}>(الكل)</option>
+                        <option value="contains" ${currentConfig.type === 'contains' ? 'selected' : ''}>يحتوي على...</option>
+                        <option value="equals" ${currentConfig.type === 'equals' ? 'selected' : ''}>يساوي تماماً</option>
+                        <option value="starts" ${currentConfig.type === 'starts' ? 'selected' : ''}>يبدأ بـ...</option>
+                        <option value="ends" ${currentConfig.type === 'ends' ? 'selected' : ''}>ينتهي بـ...</option>
+                        <option value="not_contains" ${currentConfig.type === 'not_contains' ? 'selected' : ''}>لا يحتوي على...</option>
+                    </select>
+                    <input type="text" id="text-val-1-${colIndex}" placeholder="أدخل النص للبحث..." value="${currentConfig.val1 || ''}">
+                `;
+            } else if (dataType === 'numeric') {
+                contentHtml += `
+                    <div class="filter-section-title">عوامل تصفية الأرقام</div>
+                    <select id="num-filter-type-${colIndex}" onchange="document.getElementById('num-box-2-${colIndex}').style.display = (this.value === 'between') ? 'block' : 'none';">
+                        <option value="all" ${currentConfig.type === 'all' ? 'selected' : ''}>(الكل)</option>
+                        <option value="equals" ${currentConfig.type === 'equals' ? 'selected' : ''}>يساوي (=)</option>
+                        <option value="not_equals" ${currentConfig.type === 'not_equals' ? 'selected' : ''}>لا يساوي (≠)</option>
+                        <option value="greater" ${currentConfig.type === 'greater' ? 'selected' : ''}>أكبر من (&gt;)</option>
+                        <option value="greater_equal" ${currentConfig.type === 'greater_equal' ? 'selected' : ''}>أكبر من أو يساوي (&ge;)</option>
+                        <option value="less" ${currentConfig.type === 'less' ? 'selected' : ''}>أقل من (&lt;)</option>
+                        <option value="less_equal" ${currentConfig.type === 'less_equal' ? 'selected' : ''}>أقل من أو يساوي (&le;)</option>
+                        <option value="between" ${currentConfig.type === 'between' ? 'selected' : ''}>بين رقمين (Between)</option>
+                    </select>
+                    <input type="text" id="num-val-1-${colIndex}" placeholder="القيمة الأولى" value="${currentConfig.val1 || ''}">
+                    <div id="num-box-2-${colIndex}" style="display: ${currentConfig.type === 'between' ? 'block' : 'none'};">
+                        <input type="text" id="num-val-2-${colIndex}" placeholder="القيمة الثانية" value="${currentConfig.val2 || ''}">
+                    </div>
+                `;
+            } else if (dataType === 'date' || dataType === 'datetime') {
+                contentHtml += `
+                    <div class="filter-section-title">عوامل تصفية التواريخ</div>
+                    <select id="date-filter-type-${colIndex}" onchange="document.getElementById('date-box-2-${colIndex}').style.display = (this.value === 'between') ? 'block' : 'none';">
+                        <option value="all" ${currentConfig.type === 'all' ? 'selected' : ''}>(الكل)</option>
+                        <option value="equals" ${currentConfig.type === 'equals' ? 'selected' : ''}>يساوي التاريخ</option>
+                        <option value="before" ${currentConfig.type === 'before' ? 'selected' : ''}>أقدم من (قبل)</option>
+                        <option value="after" ${currentConfig.type === 'after' ? 'selected' : ''}>أحدث من (بعد)</option>
+                        <option value="between" ${currentConfig.type === 'between' ? 'selected' : ''}>بين تاريخين</option>
+                    </select>
+                    <input type="${dataType === 'datetime' ? 'datetime-local' : 'date'}" id="date-val-1-${colIndex}" value="${currentConfig.val1 || ''}">
+                    <div id="date-box-2-${colIndex}" style="display: ${currentConfig.type === 'between' ? 'block' : 'none'};">
+                        <input type="${dataType === 'datetime' ? 'datetime-local' : 'date'}" id="date-val-2-${colIndex}" value="${currentConfig.val2 || ''}">
+                    </div>
+                `;
+            }
+
+            contentHtml += `
+                <div class="filter-action-btns">
+                    <button onclick="applyAccessFilter(${colIndex}, '${dataType}')">موافق</button>
+                    <button class="clear-btn" onclick="clearColumnFilter(${colIndex})">إلغاء الفلتر</button>
+                </div>
+            `;
+
+            menu.innerHTML = contentHtml;
+            menu.style.display = 'block';
+        }
+
+        function sortTable(colIndex, order) {
+            const tableBody = document.getElementById('tableBody');
+            const rowsArray = Array.from(tableBody.querySelectorAll('tr'));
+
+            rowsArray.sort((rowA, rowB) => {
+                const cellA = rowA.querySelectorAll('td')[colIndex];
+                const cellB = rowB.querySelectorAll('td')[colIndex];
+                
+                const inputA = cellA ? cellA.querySelector('input') : null;
+                const inputB = cellB ? cellB.querySelector('input') : null;
+
+                const valA = inputA ? inputA.value.trim() : (cellA ? cellA.innerText.trim() : '');
+                const valB = inputB ? inputB.value.trim() : (cellB ? cellB.innerText.trim() : '');
+
+                if (order === 'asc') {
+                    return valA.localeCompare(valB, 'ar', { numeric: true });
+                } else {
+                    return valB.localeCompare(valA, 'ar', { numeric: true });
+                }
+            });
+
+            rowsArray.forEach(row => tableBody.appendChild(row));
+            document.querySelectorAll('.access-filter-menu').forEach(m => m.style.display = 'none');
+        }
+
+        function applyAccessFilter(colIndex, dataType) {
+            const menu = document.getElementById(`access-filter-${colIndex}`);
+            
+            if (dataType === 'text') {
+                const type = document.getElementById(`text-filter-type-${colIndex}`).value;
+                const val1 = document.getElementById(`text-val-1-${colIndex}`).value.trim();
+                
+                if (type === 'all' || val1 === '') {
+                    delete activeFilters[colIndex];
+                } else {
+                    activeFilters[colIndex] = { type, val1, dataType };
+                }
+            } else if (dataType === 'numeric') {
+                const type = document.getElementById(`num-filter-type-${colIndex}`).value;
+                const val1 = document.getElementById(`num-val-1-${colIndex}`).value;
+                const val2 = document.getElementById(`num-val-2-${colIndex}`).value;
+                
+                if (type === 'all') {
+                    delete activeFilters[colIndex];
+                } else {
+                    activeFilters[colIndex] = { type, val1, val2, dataType };
+                }
+            } else if (dataType === 'date' || dataType === 'datetime') {
+                const type = document.getElementById(`date-filter-type-${colIndex}`).value;
+                const val1 = document.getElementById(`date-val-1-${colIndex}`).value;
+                const val2 = document.getElementById(`date-val-2-${colIndex}`).value;
+                
+                if (type === 'all') {
+                    delete activeFilters[colIndex];
+                } else {
+                    activeFilters[colIndex] = { type, val1, val2, dataType };
+                }
+            }
+
+            executeFilters();
+            menu.style.display = 'none';
+        }
+
+        function clearColumnFilter(colIndex) {
+            delete activeFilters[colIndex];
+            executeFilters();
+            const menu = document.getElementById(`access-filter-${colIndex}`);
+            menu.style.display = 'none';
+        }
+
+        function executeFilters() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                let show = true;
+                const cells = row.querySelectorAll('td');
+                
+                for (let colIndex in activeFilters) {
+                    let filter = activeFilters[colIndex];
+                    let cell = cells[colIndex];
+                    if (!cell) continue;
+                    let input = cell.querySelector('input');
+                    let val = input ? input.value.trim() : cell.innerText.trim();
+
+                    if (filter.dataType === 'text') {
+                        let textVal = val.toLowerCase();
+                        let target = filter.val1.toLowerCase();
+
+                        if (filter.type === 'contains' && !textVal.includes(target)) { show = false; break; }
+                        if (filter.type === 'equals' && textVal !== target) { show = false; break; }
+                        if (filter.type === 'starts' && !textVal.startsWith(target)) { show = false; break; }
+                        if (filter.type === 'ends' && !textVal.endsWith(target)) { show = false; break; }
+                        if (filter.type === 'not_contains' && textVal.includes(target)) { show = false; break; }
+                    } else if (filter.dataType === 'numeric') {
+                        let numVal = parseFloat(val) || 0;
+                        let v1 = parseFloat(filter.val1);
+                        let v2 = parseFloat(filter.val2);
+
+                        if (filter.type === 'equals' && numVal !== v1) { show = false; break; }
+                        if (filter.type === 'not_equals' && numVal === v1) { show = false; break; }
+                        if (filter.type === 'greater' && !(numVal > v1)) { show = false; break; }
+                        if (filter.type === 'greater_equal' && !(numVal >= v1)) { show = false; break; }
+                        if (filter.type === 'less' && !(numVal < v1)) { show = false; break; }
+                        if (filter.type === 'less_equal' && !(numVal <= v1)) { show = false; break; }
+                        if (filter.type === 'between' && !(numVal >= v1 && numVal <= v2)) { show = false; break; }
+                    } else if (filter.dataType === 'date' || filter.dataType === 'datetime') {
+                        if (filter.type === 'equals' && val !== filter.val1) { show = false; break; }
+                        if (filter.type === 'before' && !(val < filter.val1)) { show = false; break; }
+                        if (filter.type === 'after' && !(val > filter.val1)) { show = false; break; }
+                        if (filter.type === 'between' && !(val >= filter.val1 && val <= filter.val2)) { show = false; break; }
+                    }
+                }
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
+        function formatNumber(num) {
+            if (isNaN(num)) return '';
+            let parsed = parseFloat(num);
+            if (parsed === 0) return '';
+            return parseFloat(parsed.toFixed(2)).toString();
+        }
+
+        function getCurrentDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function delayedCalculate(element, actionType) {
+            if (element.dataset.timeoutId) {
+                clearTimeout(parseInt(element.dataset.timeoutId));
+            }
+
+            const timeoutId = setTimeout(() => {
+                const row = element.closest('tr');
+                if (actionType === 'price') {
+                    handlePriceInput(element);
+                } else if (actionType === 'value') {
+                    handleValueInput(element);
+                } else if (actionType === 'discPercent') {
+                    handleDiscountPercent(element);
+                } else if (actionType === 'discAmount') {
+                    handleDiscountAmount(element);
+                } else {
+                    calculateRow(element);
+                }
+                
+                calculateRow(element);
+                updateTotals();
+            }, 2000);
+
+            element.dataset.timeoutId = timeoutId;
+        }
+
+        function updateValueBeforeDiscount(row) {
+            const valueBeforeDiscountInput = row.querySelector('.field-value-before-discount');
+            if (!valueBeforeDiscountInput) return;
+
+            const beforeDiscountInput = row.querySelector('.field-before-discount');
+            const priceInput = row.querySelector('.field-price');
+            const qtyInput = row.querySelector('.field-qty');
+            const unitInput = row.querySelector('.field-unit');
+            const valueInput = row.querySelector('.field-value');
+
+            let originalPrice = parseFloat(beforeDiscountInput?.value) || 
+                                parseFloat(priceInput?.getAttribute('data-original-price')) || 
+                                parseFloat(priceInput?.value) || 0;
+
+            let qty = parseFloat(qtyInput?.value) || 0;
+            let unit = parseFloat(unitInput?.value) || 0;
+            let divisor = (unit === 0) ? 1 : unit;
+
+            if (originalPrice > 0 && qty > 0) {
+                let valBefore = (qty / divisor) * originalPrice;
+                valueBeforeDiscountInput.value = valBefore > 0 ? formatNumber(valBefore) : '';
+                if (valueInput) valueInput.setAttribute('data-original-value', valBefore);
+            } else {
+                let currentVal = parseFloat(valueInput?.value) || 0;
+                if (currentVal > 0) {
+                    valueBeforeDiscountInput.value = formatNumber(currentVal);
+                    if (valueInput) valueInput.setAttribute('data-original-value', currentVal);
+                }
+            }
+        }
+
+        function resetPriceCycle(dotElement) {
+            const row = dotElement.closest('tr');
+            const priceInput = row.querySelector('.field-price');
+            const beforeDiscountInput = row.querySelector('.field-before-discount');
+            const amountInput = row.querySelector('.field-discount-amount');
+            const percentInput = row.querySelector('.field-discount-percent');
+
+            dotElement.classList.toggle('active');
+            const isGreen = dotElement.classList.contains('active');
+
+            if (isGreen) {
+                beforeDiscountInput.removeAttribute('disabled');
+                beforeDiscountInput.style.backgroundColor = '#fff';
+                beforeDiscountInput.focus();
+
+                priceInput.setAttribute('disabled', 'true');
+                priceInput.style.backgroundColor = '#f1f5f9';
+            } else {
+                beforeDiscountInput.setAttribute('disabled', 'true');
+                beforeDiscountInput.style.backgroundColor = '#f1f5f9';
+                priceInput.removeAttribute('disabled');
+                priceInput.style.backgroundColor = '#fff';
+            }
+
+            if (priceInput) {
+                priceInput.value = '';
+                priceInput.removeAttribute('data-original-price');
+            }
+            if (beforeDiscountInput && !isGreen) {
+                beforeDiscountInput.value = '';
+            }
+            if (amountInput) amountInput.value = '';
+            if (percentInput) percentInput.value = '';
+
+            updateValueBeforeDiscount(row);
+            calculateRow(row.querySelector('.field-unit'));
+            updateTotals();
+        }
+
+        function checkPriceInputRestriction(priceInput) {
+            const row = priceInput.closest('tr');
+            const dot = row.querySelector('.reset-price-dot');
+            const beforeDiscountInput = row.querySelector('.field-before-discount');
+
+            if (dot && dot.classList.contains('active')) {
+                if (!beforeDiscountInput.value || beforeDiscountInput.value.trim() === '') {
+                    alert('عذراً، النقطة خضراء! يجب الكتابة في عمود "سعر الوحدة قبل الخصم" أولاً قبل الكتابة في سعر الوحدة.');
+                    priceInput.value = '';
+                    beforeDiscountInput.focus();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function applyGlobalDiscountByAmount(amountInput) {
+            let globalAmount = parseFloat(amountInput.value) || 0;
+            let totalValue = 0;
+
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const valueInput = row.querySelector('.field-value');
+                const priceInput = row.querySelector('.field-price');
+                const beforeDiscountInput = row.querySelector('.field-before-discount');
+                let originalPrice = parseFloat(beforeDiscountInput?.value) || parseFloat(priceInput?.getAttribute('data-original-price')) || parseFloat(priceInput?.value) || 0;
+                let unit = parseFloat(row.querySelector('.field-unit')?.value) || 0;
+                let qty = parseFloat(row.querySelector('.field-qty')?.value) || 0;
+                let divisor = (unit === 0) ? 1 : unit;
+                
+                if (originalPrice > 0 && qty > 0) {
+                    totalValue += (qty / divisor) * originalPrice;
+                } else if (valueInput) {
+                    totalValue += parseFloat(valueInput.getAttribute('data-original-value')) || parseFloat(valueInput.value) || 0;
+                }
+            });
+
+            let globalPercent = 0;
+            if (totalValue > 0 && globalAmount > 0) {
+                globalPercent = (globalAmount / totalValue) * 100;
+            }
+
+            const globalPercentInput = document.getElementById('global-disc-percent');
+            if (globalPercentInput) {
+                globalPercentInput.value = globalPercent > 0 ? formatNumber(globalPercent) : '';
+            }
+
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const percentInput = row.querySelector('.field-discount-percent');
+                if (percentInput) {
+                    percentInput.value = globalPercent > 0 ? formatNumber(globalPercent) : '';
+                    handleDiscountPercent(percentInput);
+                }
+            });
+            updateTotals();
+        }
+
+        function applyGlobalDiscountByPercent(percentInput) {
+            let globalPercent = parseFloat(percentInput.value) || 0;
+            let totalValue = 0;
+
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const priceInput = row.querySelector('.field-price');
+                const beforeDiscountInput = row.querySelector('.field-before-discount');
+                let originalPrice = parseFloat(beforeDiscountInput?.value) || parseFloat(priceInput?.getAttribute('data-original-price')) || parseFloat(priceInput?.value) || 0;
+                let qty = parseFloat(row.querySelector('.field-qty')?.value) || 0;
+                let unit = parseFloat(row.querySelector('.field-unit')?.value) || 0;
+                let divisor = (unit === 0) ? 1 : unit;
+                
+                if (originalPrice > 0 && qty > 0) {
+                    totalValue += (qty / divisor) * originalPrice;
+                }
+            });
+
+            let globalAmount = 0;
+            if (totalValue > 0 && globalPercent > 0) {
+                globalAmount = (totalValue * globalPercent) / 100;
+            }
+
+            const globalAmountInput = document.getElementById('global-disc-amount');
+            if (globalAmountInput) {
+                globalAmountInput.value = globalAmount > 0 ? formatNumber(globalAmount) : '';
+            }
+
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const percentInputRow = row.querySelector('.field-discount-percent');
+                if (percentInputRow) {
+                    percentInputRow.value = globalPercent > 0 ? formatNumber(globalPercent) : '';
+                    handleDiscountPercent(percentInputRow);
+                }
+            });
+            updateTotals();
+        }
+
+        function addRow() {
+            const tableBody = document.getElementById('tableBody');
+            const newRow = document.createElement('tr');
+            const currentDT = getCurrentDateTime();
+
+            newRow.dataset.targetField = "4";
+
+            let rowHtml = `
+                <td class="col-0" style="display: none;">
+                    <div class="input-wrapper" style="justify-content: center;">
+                        <input type="datetime-local" class="field-datetime" value="${currentDT}" style="width: 100%;">
+                    </div>
+                </td>
+                <td class="col-1" style="display: none;">
+                    <div class="input-wrapper" style="justify-content: center;">
+                        <input type="text" class="field-entity" style="width: 100%;">
+                    </div>
+                </td>
+                <td class="col-2" style="display: none;">
+                    <div class="input-wrapper" style="justify-content: center;">
+                        <input type="text" class="field-statement" style="width: 100%;">
+                    </div>
+                </td>
+                <td class="col-3">
+                    <div class="input-wrapper">
+                        <input type="text" class="field-unit" oninput="delayedCalculate(this, 'calc');" onchange="calculateRow(this); updateTotals();">
+                        <input type="checkbox" class="check-unit" onchange="handleCheckbox(this, 3)">
+                    </div>
+                </td>
+                <td class="col-4">
+                    <div class="input-wrapper">
+                        <input type="text" class="field-value" data-original-value="" oninput="delayedCalculate(this, 'value');" onchange="handleValueInput(this); updateTotals();">
+                        <input type="checkbox" class="check-value" checked onchange="handleCheckbox(this, 4)">
+                    </div>
+                </td>
+                <td class="col-5">
+                    <div class="input-wrapper" style="justify-content: center;">
+                        <input type="text" class="field-price" data-original-price="" oninput="if(checkPriceInputRestriction(this)) delayedCalculate(this, 'price');" onchange="if(checkPriceInputRestriction(this)) { handlePriceInput(this); updateTotals(); }" style="width: 85%;">
+                        <input type="checkbox" class="check-price" onchange="handleCheckbox(this, 5)" style="width: 12%;">
+                    </div>
+                </td>
+                <td class="col-6">
+                    <div class="input-wrapper">
+                        <input type="text" class="field-qty" oninput="delayedCalculate(this, 'calc');" onchange="calculateRow(this); updateTotals();">
+                        <input type="checkbox" class="check-qty" onchange="handleCheckbox(this, 6)">
+                    </div>
+                </td>
+                <td class="col-7" style="display: none;">
+                    <div class="price-cell-container">
+                        <div class="reset-price-dot" title="اضغط لتفعيل وتعديل سعر الوحدة قبل الخصم" onclick="resetPriceCycle(this)"></div>
+                        <div class="input-wrapper" style="width: 100%;">
+                            <input type="text" class="field-before-discount" disabled oninput="handleBeforeDiscountInput(this);" onchange="handleBeforeDiscountInput(this);" style="width: 85%; text-align: center; direction: ltr; background-color: #f1f5f9;">
+                            <input type="checkbox" class="check-before-discount" onchange="handleCheckbox(this, 7)" style="width: 12%;">
+                        </div>
+                    </div>
+                </td>
+                <td class="col-8" style="display: none;">
+                    <div class="input-wrapper" style="justify-content: center;">
+                        <input type="text" class="field-value-before-discount" disabled style="width: 100%; text-align: center;">
+                    </div>
+                </td>
+                <td class="col-9" style="display: none;">
+                    <div class="input-wrapper" style="justify-content: center;">
+                        <input type="text" class="field-discount-amount" placeholder="خصم سعر الوحدة" style="width: 100%; direction: ltr; text-align: center; font-size: 18px;" oninput="delayedCalculate(this, 'discAmount');" onchange="handleDiscountAmount(this); updateTotals();">
+                    </div>
+                </td>
+                <td class="col-10" style="width: 200px;">
+                    <div style="display: flex; flex-direction: row; gap: 6px; align-items: center; justify-content: center;">
+                        <div class="percent-input-wrapper" style="width: 48%;">
+                            <input type="text" class="field-discount-percent" placeholder="%" oninput="delayedCalculate(this, 'discPercent');" onchange="handleDiscountPercent(this); updateTotals();" style="font-size: 14px; padding: 4px;">
+                            <span class="symbol" style="font-size: 14px; left: 6px;">%</span>
+                        </div>
+                        <input type="text" class="field-discount-val" disabled placeholder="قيمة" style="width: 48%; text-align: center; direction: ltr; background-color: #f1f5f9; font-size: 14px; padding: 4px; border-radius: 6px; box-sizing: border-box;">
+                    </div>
+                </td>
+            `;
+
+            for (let i = 12; i < totalColumnsCount; i++) {
+                let isVisible = document.querySelector(`.col-${i}`)?.style.display !== 'none';
+                let hiddenStyle = isVisible ? '' : 'style="display: none;"';
+                rowHtml += `
+                    <td class="col-${i}" ${hiddenStyle}>
+                        <div class="input-wrapper" style="justify-content: center;">
+                            <input type="text" style="width: 100%;">
+                        </div>
+                    </td>
+                `;
+            }
+
+            rowHtml += `
+                <td class="action-cell col-${totalColumnsCount <= 11 ? 11 : 'action'}">
+                    <button class="btn-small reset-btn" onclick="resetRow(this)" title="إعادة">🔄</button>
+                    <button class="btn-small delete-btn" onclick="deleteRow(this)" title="حذف">🗑️</button>
+                </td>
+            `;
+
+            newRow.innerHTML = rowHtml;
+            tableBody.appendChild(newRow);
+            
+            const globalPercentInput = document.getElementById('global-disc-percent');
+            if (globalPercentInput && globalPercentInput.value.trim() !== '') {
+                const percentInputRow = newRow.querySelector('.field-discount-percent');
+                if (percentInputRow) {
+                    percentInputRow.value = globalPercentInput.value;
+                    handleDiscountPercent(percentInputRow);
+                }
+            }
+
+            const checkboxes = document.querySelectorAll('#columnsCheckboxesList input[type="checkbox"]');
+            checkboxes.forEach((chk, index) => {
+                toggleColumn(index, chk.checked);
+            });
+            updateTotals();
+        }
+
+        function addNewCustomColumn() {
+            const nameInput = document.getElementById('newColName');
+            const typeSelect = document.getElementById('newColType');
+            const visibilitySelect = document.getElementById('newColVisibility');
+
+            const colName = nameInput.value.trim();
+            if (!colName) {
+                alert('يرجى ادخال اسم العمود');
+                return;
+            }
+
+            const colType = typeSelect.value;
+            const isVisible = visibilitySelect.value === 'visible';
+            const newIndex = totalColumnsCount;
+            totalColumnsCount++;
+
+            const listContainer = document.getElementById('columnsCheckboxesList');
+            const newLabel = document.createElement('label');
+            const checkedAttr = isVisible ? 'checked' : '';
+            newLabel.innerHTML = `<input type="checkbox" ${checkedAttr} onchange="toggleColumn(${newIndex}, this.checked)"> <span id="lbl-col-${newIndex}">${colName}</span>`;
+            listContainer.appendChild(newLabel);
+
+            const headerRow = document.getElementById('headerRow');
+            const optionsTh = headerRow.querySelector('.col-11') || headerRow.lastElementChild;
+            
+            const newTh = document.createElement('th');
+            newTh.className = `col-${newIndex}`;
+            newTh.setAttribute('draggable', 'true');
+            newTh.setAttribute('data-col', newIndex);
+            newTh.setAttribute('data-type', colType);
+            newTh.setAttribute('oncontextmenu', `renameColumn(event, ${newIndex})`);
+            if (!isVisible) newTh.style.display = 'none';
+
+            newTh.innerHTML = `
+                <div class="th-content">
+                    <span id="text-col-${newIndex}">${colName}</span>
+                    <button class="filter-dropdown-btn" onclick="toggleAccessFilter(event, ${newIndex})">▼</button>
+                </div>
+                <div id="access-filter-${newIndex}" class="access-filter-menu"></div>
+            `;
+            headerRow.insertBefore(newTh, optionsTh);
+
+            const footerRow = document.getElementById('tableFooter');
+            const optionsTdFooter = footerRow.lastElementChild;
+            const newFooterTd = document.createElement('td');
+            newFooterTd.className = `col-${newIndex}`;
+            if (!isVisible) newFooterTd.style.display = 'none';
+            footerRow.insertBefore(newFooterTd, optionsTdFooter);
+
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const optionsCell = row.lastElementChild;
+                const newCell = document.createElement('td');
+                newCell.className = `col-${newIndex}`;
+                if (!isVisible) newCell.style.display = 'none';
+                
+                let inputType = 'text';
+                if (colType === 'date') inputType = 'date';
+                else if (colType === 'datetime') inputType = 'datetime-local';
+                else if (colType === 'numeric') inputType = 'text';
+
+                newCell.innerHTML = `
+                    <div class="input-wrapper" style="justify-content: center;">
+                        <input type="${inputType}" style="width: 100%;">
+                    </div>
+                `;
+                row.insertBefore(newCell, optionsCell);
+            });
+
+            nameInput.value = '';
+            document.getElementById('dropdownMenu').style.display = 'none';
+            document.getElementById('arrow1').textContent = '▼';
+        }
+
+        window.onload = function() {
+            addRow();
+            initDragAndDrop();
+        };
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                const target = event.target;
+                if (target && target.tagName === 'INPUT' && target.type === 'text') {
+                    event.preventDefault();
+                    
+                    if (target.classList.contains('field-price')) {
+                        if (!checkPriceInputRestriction(target)) return;
+                    }
+
+                    if (target.dataset.timeoutId) {
+                        clearTimeout(parseInt(target.dataset.timeoutId));
+                    }
+
+                    if (typeof target.onchange === 'function') {
+                        target.onchange();
+                    }
+
+                    const currentRow = target.closest('tr');
+                    const currentCell = target.closest('td');
+                    
+                    if (currentRow && currentCell) {
+                        const cellIndex = Array.from(currentRow.children).indexOf(currentCell);
+                        const nextRow = currentRow.nextElementSibling;
+                        
+                        if (nextRow) {
+                            const targetCellInNextRow = nextRow.children[cellIndex];
+                            if (targetCellInNextRow) {
+                                const inputInNext = targetCellInNextRow.querySelector('input[type="text"]');
+                                if (inputInNext) {
+                                    inputInNext.focus();
+                                    inputInNext.select();
+                                }
+                            }
+                        } else {
+                            addRow();
+                            const updatedNextRow = document.querySelector('#tableBody').lastElementChild;
+                            if (updatedNextRow) {
+                                const targetCellInNextRow = updatedNextRow.children[cellIndex];
+                                if (targetCellInNextRow) {
+                                    const inputInNext = targetCellInNextRow.querySelector('input[type="text"]');
+                                    if (inputInNext) {
+                                        inputInNext.focus();
+                                        inputInNext.select();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function toggleColumn(colIndex, isVisible) {
+            const cells = document.querySelectorAll(`.col-${colIndex}`);
+            cells.forEach(cell => {
+                cell.style.display = isVisible ? '' : 'none';
+            });
+        }
+
+        function handleCheckbox(checkbox, fieldIndex) {
+            const row = checkbox.closest('tr');
+            const checkboxes = row.querySelectorAll('input[type="checkbox"]');
+
+            if (checkbox.checked) {
+                checkboxes.forEach((chk, idx) => {
+                    if (chk !== checkbox && !chk.classList.contains('extra-checkbox')) chk.checked = false;
+                });
+                
+                row.dataset.targetField = fieldIndex;
+                calculateRow(checkbox);
+                updateTotals();
+            } else {
+                let anyChecked = false;
+                checkboxes.forEach(chk => {
+                    if(chk.checked) anyChecked = true;
+                });
+                if(!anyChecked) {
+                    delete row.dataset.targetField;
+                }
+                updateTotals();
+            }
+        }
+
+        function handlePriceInput(priceInput) {
+            const row = priceInput.closest('tr');
+            const beforeDiscountInput = row.querySelector('.field-before-discount');
+            const percentInput = row.querySelector('.field-discount-percent');
+            const amountInput = row.querySelector('.field-discount-amount');
+            const dot = row.querySelector('.reset-price-dot');
+
+            let originalPrice = parseFloat(beforeDiscountInput.value) || parseFloat(priceInput.getAttribute('data-original-price')) || 0;
+            let currentPrice = parseFloat(priceInput.value) || 0;
+
+            if (originalPrice > 0 && currentPrice <= originalPrice) {
+                let diff = originalPrice - currentPrice;
+                if (diff > 0) {
+                    if(amountInput) amountInput.value = formatNumber(diff);
+                    if(percentInput) percentInput.value = formatNumber((diff / originalPrice) * 100);
+                } else {
+                    if(amountInput) amountInput.value = '';
+                    if(percentInput) percentInput.value = '';
+                }
+            } else {
+                if(amountInput) amountInput.value = '';
+                if(percentInput) percentInput.value = '';
+            }
+
+            const val = parseFloat(priceInput.value) || 0;
+            priceInput.setAttribute('data-original-price', val);
+
+            updateValueBeforeDiscount(row);
+            calculateRow(priceInput);
+
+            if (priceInput.dataset.lockTimeout) {
+                clearTimeout(parseInt(priceInput.dataset.lockTimeout));
+            }
+
+            if (dot && dot.classList.contains('active')) {
+                const timeoutId = setTimeout(() => {
+                    if (priceInput.value.trim() !== '') {
+                        priceInput.setAttribute('disabled', 'true');
+                        priceInput.style.backgroundColor = '#f1f5f9';
+                    }
+                }, 2000);
+                priceInput.dataset.lockTimeout = timeoutId;
+            } else {
+                priceInput.removeAttribute('disabled');
+                priceInput.style.backgroundColor = '#fff';
+            }
+        }
+
+        function handleBeforeDiscountInput(beforeDiscountInput) {
+            const row = beforeDiscountInput.closest('tr');
+            const priceInput = row.querySelector('.field-price');
+            const amountInput = row.querySelector('.field-discount-amount');
+            const percentInput = row.querySelector('.field-discount-percent');
+
+            let originalPrice = parseFloat(beforeDiscountInput.value) || 0;
+            priceInput.setAttribute('data-original-price', originalPrice);
+
+            let currentPrice = parseFloat(priceInput.value) || originalPrice;
+            if (originalPrice > 0 && currentPrice <= originalPrice) {
+                let diff = originalPrice - currentPrice;
+                if (diff > 0) {
+                    if(amountInput) amountInput.value = formatNumber(diff);
+                    if(percentInput) percentInput.value = formatNumber((diff / originalPrice) * 100);
+                } else {
+                    if(amountInput) amountInput.value = '';
+                    if(percentInput) percentInput.value = '';
+                }
+            }
+
+            updateValueBeforeDiscount(row);
+            calculateRow(beforeDiscountInput);
+            updateTotals();
+
+            if (beforeDiscountInput.dataset.lockTimeout) {
+                clearTimeout(parseInt(beforeDiscountInput.dataset.lockTimeout));
+            }
+            const timeoutId = setTimeout(() => {
+                if (beforeDiscountInput.value.trim() !== '') {
+                    beforeDiscountInput.setAttribute('disabled', 'true');
+                    beforeDiscountInput.style.backgroundColor = '#f1f5f9';
+                    
+                    const dot = row.querySelector('.reset-price-dot');
+                    if (dot && dot.classList.contains('active')) {
+                        priceInput.removeAttribute('disabled');
+                        priceInput.style.backgroundColor = '#fff';
+                    }
+                }
+            }, 2000);
+            beforeDiscountInput.dataset.lockTimeout = timeoutId;
+        }
+
+        function handleValueInput(valueInput) {
+            const row = valueInput.closest('tr');
+            const newVal = parseFloat(valueInput.value) || 0;
+            const valueBeforeDiscountInput = row.querySelector('.field-value-before-discount');
+
+            valueInput.setAttribute('data-original-value', newVal);
+            if(valueBeforeDiscountInput) valueBeforeDiscountInput.value = newVal > 0 ? formatNumber(newVal) : '';
+            calculateRow(valueInput);
+        }
+
+        function handleDiscountPercent(percentInput) {
+            const row = percentInput.closest('tr');
+            const priceInput = row.querySelector('.field-price');
+            const beforeDiscountInput = row.querySelector('.field-before-discount');
+            
+            // تفريغ وتعطيل عمود سعر الوحدة قبل الخصم عند الكتابة في نسبة الخصم
+            if (beforeDiscountInput && percentInput.value.trim() !== '') {
+                beforeDiscountInput.value = '';
+                beforeDiscountInput.setAttribute('disabled', 'true');
+                beforeDiscountInput.style.backgroundColor = '#f1f5f9';
+                const dot = row.querySelector('.reset-price-dot');
+                if (dot && dot.classList.contains('active')) {
+                    dot.classList.remove('active');
+                }
+            }
+
+            const valueInput = row.querySelector('.field-value');
+            const amountInput = row.querySelector('.field-discount-amount');
+            
+            let originalPrice = parseFloat(beforeDiscountInput.value) || parseFloat(priceInput.getAttribute('data-original-price')) || parseFloat(priceInput.value) || 0;
+            let originalValue = parseFloat(valueInput.getAttribute('data-original-value')) || parseFloat(valueInput.value) || 0;
+
+            const percent = parseFloat(percentInput.value);
+            if (!isNaN(percent) && percent > 0 && originalPrice > 0) {
+                let discountValue = (originalPrice * percent) / 100;
+                if(amountInput) amountInput.value = formatNumber(discountValue);
+                priceInput.value = formatNumber(originalPrice - discountValue);
+                if (originalValue > 0) {
+                    valueInput.value = formatNumber(originalValue - ((originalValue * percent) / 100));
+                }
+            } else {
+                if(amountInput) amountInput.value = '';
+                priceInput.value = formatNumber(originalPrice);
+                valueInput.value = formatNumber(originalValue);
+            }
+            calculateRow(percentInput);
+        }
+
+        function handleDiscountAmount(amountInput) {
+            const row = amountInput.closest('tr');
+            const priceInput = row.querySelector('.field-price');
+            const beforeDiscountInput = row.querySelector('.field-before-discount');
+            
+            // تفريغ وتعطيل عمود سعر الوحدة قبل الخصم عند الكتابة في قيمة الخصم
+            if (beforeDiscountInput && amountInput.value.trim() !== '') {
+                beforeDiscountInput.value = '';
+                beforeDiscountInput.setAttribute('disabled', 'true');
+                beforeDiscountInput.style.backgroundColor = '#f1f5f9';
+                const dot = row.querySelector('.reset-price-dot');
+                if (dot && dot.classList.contains('active')) {
+                    dot.classList.remove('active');
+                }
+            }
+
+            const valueInput = row.querySelector('.field-value');
+            const percentInput = row.querySelector('.field-discount-percent');
+            
+            let originalPrice = parseFloat(beforeDiscountInput.value) || parseFloat(priceInput.getAttribute('data-original-price')) || parseFloat(priceInput.value) || 0;
+            let originalValue = parseFloat(valueInput.getAttribute('data-original-value')) || parseFloat(valueInput.value) || 0;
+
+            const amount = parseFloat(amountInput.value);
+            if (!isNaN(amount) && amount > 0 && originalPrice > 0) {
+                let percentValue = (amount / originalPrice) * 100;
+                if(percentInput) percentInput.value = formatNumber(percentValue);
+                priceInput.value = formatNumber(originalPrice - amount);
+                if (originalValue > 0) {
+                    valueInput.value = formatNumber(originalValue - ((originalValue * percentValue) / 100));
+                }
+            } else {
+                if(percentInput) percentInput.value = '';
+                priceInput.value = formatNumber(originalPrice);
+                valueInput.value = formatNumber(originalValue);
+            }
+            calculateRow(amountInput);
+        }
+
+        function calculateRow(element) {
+            const row = element.closest('tr');
+            
+            if (element && element.classList.contains('field-qty')) {
+                const percentInput = row.querySelector('.field-discount-percent');
+                const amountInput = row.querySelector('.field-discount-amount');
+                if (percentInput) percentInput.value = '';
+                if (amountInput) amountInput.value = '';
+            }
+            
+            const unitInput = row.querySelector('.field-unit');
+            const valueInput = row.querySelector('.field-value');
+            const valueBeforeDiscountInput = row.querySelector('.field-value-before-discount');
+            const priceInput = row.querySelector('.field-price');
+            const qtyInput = row.querySelector('.field-qty');
+            const percentInput = row.querySelector('.field-discount-percent');
+            const beforeDiscountInput = row.querySelector('.field-before-discount');
+            const discountValInput = row.querySelector('.field-discount-val');
+
+            const unit = parseFloat(unitInput.value) || 0;
+            const qty = parseFloat(qtyInput.value) || 0;
+            const currentPrice = parseFloat(priceInput.value) || 0;
+            let originalPrice = parseFloat(beforeDiscountInput.value) || parseFloat(priceInput.getAttribute('data-original-price')) || currentPrice;
+
+            updateValueBeforeDiscount(row);
+
+            let targetField = row.dataset.targetField !== undefined && row.dataset.targetField !== "" ? parseInt(row.dataset.targetField) : 4;
+
+            if (element && (element.classList.contains('field-price') || element.classList.contains('field-qty') || element.classList.contains('field-unit'))) {
+                let divisor = (unit === 0) ? 1 : unit;
+                let calculatedValue = (qty / divisor) * currentPrice;
+                valueInput.value = formatNumber(calculatedValue);
+            } else if (targetField === 3 && valueInput.value !== "") {
+                let currentVal = parseFloat(valueInput.value) || 0;
+                unitInput.value = formatNumber((originalPrice / currentVal) * qty);
+            } else if (targetField === 4) {
+                let divisor = (unit === 0) ? 1 : unit;
+                let originalValue = parseFloat(valueBeforeDiscountInput?.value) || ((qty / divisor) * (currentPrice > 0 ? currentPrice : originalPrice));
+                
+                let discPercent = parseFloat(percentInput?.value) || 0;
+                let finalValue = originalValue;
+                if (discPercent > 0) {
+                    finalValue = originalValue - ((originalValue * discPercent) / 100);
+                }
+                valueInput.value = formatNumber(finalValue);
+            } else if (targetField === 5 && qty !== 0) {
+                let currentVal = parseFloat(valueInput.value) || 0;
+                let calculatedPrice = (currentVal / qty) * ((unit !== 0) ? unit : 1);
+                
+                let origPriceToCheck = parseFloat(beforeDiscountInput.value) || calculatedPrice;
+                priceInput.setAttribute('data-original-price', origPriceToCheck);
+                
+                let originalValue = parseFloat(valueBeforeDiscountInput?.value) || ((qty / ((unit === 0) ? 1 : unit)) * origPriceToCheck);
+                
+                let discPercent = parseFloat(percentInput?.value) || 0;
+                let finalValue = originalValue;
+                if (discPercent > 0) {
+                    finalValue = originalValue - ((originalValue * discPercent) / 100);
+                }
+                valueInput.value = formatNumber(finalValue);
+            } else if (targetField === 6 && originalPrice !== 0) {
+                let currentVal = parseFloat(valueInput.value) || 0;
+                qtyInput.value = formatNumber((currentVal / originalPrice) * ((unit !== 0) ? unit : 1));
+            }
+
+            let valBefore = parseFloat(valueBeforeDiscountInput?.value) || 0;
+            let valCurrent = parseFloat(valueInput?.value) || 0;
+            let diffVal = valBefore - valCurrent;
+            if (discountValInput) {
+                discountValInput.value = diffVal > 0 ? formatNumber(diffVal) : '';
+            }
+        }
+
+        function updateTotals() {
+            let totalValue = 0, totalPrice = 0, totalBeforeDiscount = 0, totalValueBeforeDiscount = 0, totalDiscount = 0, totalDiscountValSum = 0;
+
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const valueInput = row.querySelector('.field-value');
+                const priceInput = row.querySelector('.field-price');
+                const beforeDiscountInput = row.querySelector('.field-before-discount');
+                const discAmountInput = row.querySelector('.field-discount-amount');
+                const discPercentInput = row.querySelector('.field-discount-percent');
+                const discountValInput = row.querySelector('.field-discount-val');
+                const valueBeforeDiscountInput = row.querySelector('.field-value-before-discount');
+
+                if (valueInput) totalValue += parseFloat(valueInput.value) || 0;
+                if (priceInput) totalPrice += parseFloat(priceInput.value) || 0;
+                
+                let originalPrice = parseFloat(beforeDiscountInput?.value) || parseFloat(priceInput?.getAttribute('data-original-price')) || parseFloat(priceInput?.value) || 0;
+                totalBeforeDiscount += originalPrice;
+
+                let originalValue = parseFloat(valueBeforeDiscountInput?.value) || parseFloat(valueInput?.getAttribute('data-original-value')) || parseFloat(valueInput?.value) || 0;
+                totalValueBeforeDiscount += originalValue;
+
+                let rowDiscount = 0;
+                if (discAmountInput && discAmountInput.value) {
+                    rowDiscount = parseFloat(discAmountInput.value) || 0;
+                } else if (discPercentInput && discPercentInput.value) {
+                    rowDiscount = (originalPrice * (parseFloat(discPercentInput.value) || 0)) / 100;
+                }
+                totalDiscount += rowDiscount;
+
+                if (discountValInput) totalDiscountValSum += parseFloat(discountValInput.value) || 0;
+            });
+
+            let totalDiscountPercent = 0;
+            if (totalBeforeDiscount > 0 && totalDiscount > 0) {
+                totalDiscountPercent = (totalDiscount / totalBeforeDiscount) * 100;
+            }
+
+            const tv = document.getElementById('total-value');
+            const tpText = document.getElementById('total-price-text');
+            const tbd = document.getElementById('total-before-discount');
+            const tvbd = document.getElementById('total-value-before-discount');
+            const td = document.getElementById('total-discount');
+            const tdp = document.getElementById('total-discount-percent');
+            const tdv = document.getElementById('total-discount-val');
+
+            if(tv) tv.textContent = formatNumber(totalValue);
+            if(tpText) tpText.textContent = formatNumber(totalPrice);
+            if(tbd) tbd.textContent = formatNumber(totalBeforeDiscount);
+            if(tvbd) tvbd.textContent = formatNumber(totalValueBeforeDiscount);
+            if(td) td.textContent = formatNumber(totalDiscount);
+            if(tdp) tdp.textContent = totalDiscountPercent > 0 ? formatNumber(totalDiscountPercent) + '%' : '0%';
+            if(tdv) tdv.textContent = formatNumber(totalDiscountValSum);
+        }
+
+        function resetRow(button) {
+            const row = button.closest('tr');
+            row.querySelectorAll('input[type="text"]').forEach(input => {
+                input.value = '';
+                input.removeAttribute('disabled');
+                input.style.backgroundColor = '#fff';
+            });
+            row.querySelectorAll('input[type="date"], input[type="datetime-local"]').forEach(input => {
+                input.value = getCurrentDateTime();
+            });
+            row.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+                chk.checked = chk.classList.contains('check-value');
+            });
+            row.dataset.targetField = "4";
+            
+            const beforeDiscountInput = row.querySelector('.field-before-discount');
+            if(beforeDiscountInput) {
+                beforeDiscountInput.setAttribute('disabled', 'true');
+                beforeDiscountInput.style.backgroundColor = '#f1f5f9';
+            }
+
+            const dot = row.querySelector('.reset-price-dot');
+            if(dot && dot.classList.contains('active')) {
+                dot.classList.remove('active');
+            }
+
+            row.querySelector('.field-price')?.removeAttribute('data-original-price');
+            row.querySelector('.field-value')?.removeAttribute('data-original-value');
+            updateTotals();
+        }
+
+        function deleteRow(button) {
+            button.closest('tr').remove();
+            updateTotals();
+        }
+
+        function initDragAndDrop() {
+            const table = document.getElementById('mainTable');
+            let draggedColIndex = null;
+
+            table.addEventListener('dragstart', (e) => {
+                const th = e.target.closest('th');
+                if (!th) return;
+                draggedColIndex = th.getAttribute('data-col');
+                th.classList.add('dragging');
+            });
+
+            table.addEventListener('dragend', (e) => {
+                const th = e.target.closest('th');
+                if (th) th.classList.remove('dragging');
+            });
+
+            table.addEventListener('dragover', (e) => { e.preventDefault(); });
+
+            table.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const targetTh = e.target.closest('th');
+                if (!targetTh) return;
+                const targetColIndex = targetTh.getAttribute('data-col');
+                if (draggedColIndex === null || draggedColIndex === targetColIndex) return;
+                moveColumn(parseInt(draggedColIndex), parseInt(targetColIndex));
+            });
+        }
+
+        function moveColumn(fromIndex, toIndex) {
+            const table = document.getElementById('mainTable');
+            for (let i = 0; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                const fromCell = row.querySelector(`.col-${fromIndex}`);
+                const toCell = row.querySelector(`.col-${toIndex}`);
+                if (fromCell && toCell) {
+                    if (fromIndex < toIndex) row.insertBefore(fromCell, toCell.nextSibling);
+                    else row.insertBefore(fromCell, toCell);
+                }
+            }
+        }
+
+        function exportToImage() {
+            html2canvas(document.getElementById('exportArea'), { scale: 2, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'smart-table.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function exportToPDF() {
+            html2canvas(document.getElementById('exportArea'), { scale: 2, useCORS: true }).then(canvas => {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+                pdf.save('smart-table.pdf');
+            });
+        }
+
+        function exportToText() {
+            let text = "برنامج الجدول التفاعلي الذكي\n\n";
+            document.querySelectorAll('#tableBody tr').forEach((row, i) => {
+                text += `الصف ${i + 1}\n`;
+            });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+            link.download = 'smart-table.txt';
+            link.click();
+        }
+
+        function exportToWord() {
+            let html = `<html dir="rtl"><head><meta charset="utf-8"></head><body><table border="1">`;
+            document.querySelectorAll('#mainTable tr').forEach(row => {
+                html += `<tr>`;
+                row.querySelectorAll('th, td').forEach(cell => {
+                    if(cell.style.display !== 'none') html += `<td>${cell.innerText}</td>`;
+                });
+                html += `</tr>`;
+            });
+            html += `</table></body></html>`;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob(['\ufeff' + html], { type: 'application/msword;charset=utf-8' }));
+            link.download = 'smart-table.doc';
+            link.click();
+        }
+
+        function exportToHTML() {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([document.documentElement.outerHTML], { type: 'text/html;charset=utf-8' }));
+            link.download = 'smart-table.html';
+            link.click();
+        }
+    </script>
+</body>
+</html>
