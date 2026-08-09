@@ -55,7 +55,6 @@
             gap: 10px;
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
             transition: all 0.2s ease;
-            text-decoration: none;
         }
         .dropdown-btn:hover {
             transform: translateY(-2px);
@@ -127,9 +126,7 @@
 
         .add-btn-container {
             margin-top: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: right;
             position: relative;
             z-index: 1;
         }
@@ -152,22 +149,6 @@
         .add-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-        }
-        .save-sheet-btn {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 18px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-            transition: all 0.2s ease;
-        }
-        .save-sheet-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
         }
 
         table {
@@ -456,7 +437,8 @@
 
     <div class="container" id="exportArea">
         <div class="controls-wrapper">
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <!-- أزرار التحكم في الأعمدة والتصدير -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <div class="dropdown-container">
                     <button class="dropdown-btn" onclick="toggleDropdown('dropdownMenu', 'arrow1')">
                         الأعمدة <span id="arrow1">▼</span>
@@ -509,10 +491,14 @@
                 </div>
             </div>
 
-            <div>
-                <a href="archive.html" class="dropdown-btn" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);">
-                    📁 الانتقال إلى الأرشيف
-                </a>
+            <!-- الزراران الجديدان لحفظ وجلب البيانات من Google Sheets -->
+            <div style="display: flex; gap: 10px;">
+                <button class="dropdown-btn" onclick="saveCurrentData()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    حفظ البيانات الجديدة 💾
+                </button>
+                <button class="dropdown-btn" onclick="loadOldData()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    جلب البيانات القديمة 🔄
+                </button>
             </div>
         </div>
 
@@ -638,13 +624,81 @@
 
         <div class="add-btn-container">
             <button class="add-btn" onclick="addRow()">+</button>
-            <button class="save-sheet-btn" onclick="saveTableToGoogleSheet()">حفظ الجدول في جوجل شيت</button>
         </div>
     </div>
 
     <script>
-        // رابط Web App الخاص بـ Google Apps Script الذي أرسلته
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbykhFMhhrS51vBMOwJG3JZv88KYhGGAwbwdjSxCresvPXYD2jx1jIzllaQ9pCAbeb4QHQ/exec';
+        // رابط جوجل شيت (ضع رابط الـ Web App الخاص بك هنا بدلاً من النص التجريبي)
+        const WEB_APP_URL = "ضع_رابط_الـ_Web_App_هنا";
+
+        // دالة حفظ البيانات الجديدة في جوجل شيت
+        function saveCurrentData() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            if (rows.length === 0) {
+                alert("لا توجد بيانات للحفظ!");
+                return;
+            }
+
+            const lastRow = rows[rows.length - 1];
+            let rowData = [];
+            
+            lastRow.querySelectorAll('input').forEach(input => {
+                if(!input.type.includes('checkbox')) {
+                    rowData.push(input.value || "");
+                }
+            });
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ values: rowData })
+            })
+            .then(() => {
+                alert("تم حفظ البيانات بنجاح في Google Sheet!");
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                alert("حدث خطأ أثناء الحفظ.");
+            });
+        }
+
+        // دالة جلب البيانات القديمة من جوجل شيت وعرضها بالجدول
+        function loadOldData() {
+            fetch(WEB_APP_URL)
+            .then(response => response.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    alert("لا توجد بيانات قديمة محفوظة.");
+                    return;
+                }
+
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = ""; 
+
+                const startIndex = data.length > 1 && String(data[0]).includes("التاريخ") ? 1 : 0;
+
+                for (let i = startIndex; i < data.length; i++) {
+                    addRow(); 
+                    const newRow = tableBody.lastElementChild;
+                    const inputs = newRow.querySelectorAll('input');
+                    
+                    let dataIndex = 0;
+                    inputs.forEach(input => {
+                        if(!input.type.includes('checkbox') && data[i][dataIndex] !== undefined) {
+                            input.value = data[i][dataIndex];
+                            dataIndex++;
+                        }
+                    });
+                }
+                updateTotals();
+                alert("تم استرجاع البيانات القديمة بنجاح!");
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                alert("حدث خطأ أثناء جلب البيانات.");
+            });
+        }
 
         let activeFilters = {};
         let totalColumnsCount = 12;
@@ -1675,54 +1729,6 @@
             if(td) td.textContent = formatNumber(totalDiscount);
             if(tdp) tdp.textContent = totalDiscountPercent > 0 ? formatNumber(totalDiscountPercent) + '%' : '0%';
             if(tdv) tdv.textContent = formatNumber(totalDiscountValSum);
-        }
-
-        // دالة حفظ الجدول بالكامل وإرساله لجوجل شيت
-        function saveTableToGoogleSheet() {
-            const rows = document.querySelectorAll('#tableBody tr');
-            if (rows.length === 0) {
-                alert('لا توجد بيانات في الجدول للحفظ!');
-                return;
-            }
-
-            let allData = [];
-            rows.forEach(row => {
-                let rowData = [];
-                // جلب قيمة أول 11 عمود أساسي في الجدول
-                for (let i = 0; i < 11; i++) {
-                    let cell = row.querySelector(`.col-${i}`);
-                    if (cell) {
-                        let input = cell.querySelector('input');
-                        let val = input ? input.value : cell.innerText;
-                        rowData.push(val);
-                    } else {
-                        rowData.push('');
-                    }
-                }
-                allData.push(rowData);
-            });
-
-            const saveBtn = document.querySelector('.save-sheet-btn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'جاري الحفظ إلى جوجل شيت...';
-
-            fetch(scriptURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(allData)
-            })
-            .then(() => {
-                alert('تم إرسال وحفظ البيانات بنجاح إلى جوجل شيت والأرشيف!');
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'حفظ الجدول في جوجل شيت';
-            })
-            .catch(error => {
-                console.error('خطأ في الحفظ:', error);
-                alert('حدث خطأ أثناء الاتصال بجوجل شيت.');
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'حفظ الجدول في جوجل شيت';
-            });
         }
 
         function resetRow(button) {
